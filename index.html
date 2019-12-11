@@ -1,0 +1,82 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css" />
+    <style>
+        body,
+        html {
+            height: 100%;
+        }
+
+        .artwork {
+            height: 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script type="text/javascript">//<![CDATA[
+
+        window.onload = function () {
+
+            new Vue({
+                el: '#app',
+                data: {
+                    artworkURL: null,
+                    playbackState: null,
+                    activeItem: null,
+                    placeholder: [
+                        'kemurikusa.gif',
+                        'kemono.gif'
+                    ]
+                },
+                created() {
+                    this.setupStream();
+                    this.displayPlaceholder();
+                },
+                methods: {
+                    setupStream() {
+                        let es = new EventSource('/api/query/updates?player=true&trcolumns=%25artist%25%20-%20%25title%25%2C%25artist%25%20-%20%25album%25%20-%20%25title%25&playlists=true&playlistItems=true&plref=p2&plcolumns=%25artist%25%2C%25album%25%2C%25track%25%2C%25title%25%2C%25length%25&plrange=0%3A100');
+
+                        es.addEventListener('message', event => {
+                            let data = JSON.parse(event.data);
+                            if (Object.keys(data).length === 0) { return; }
+                            this.playbackState = data["player"]["playbackState"]
+                            this.activeItem = data['player']['activeItem']
+                            this.displayArtwork()
+                        }, false);
+
+                        es.addEventListener('error', event => {
+                            displayPlaceholder();
+                        }, false);
+                    },
+                    displayPlaceholder() {
+                        this.artworkURL = this.placeholder[Math.floor(Math.random() * this.placeholder.length)]
+                    },
+                    displayArtwork() {
+                        if (this.playbackState == "playing") {
+                            if (this.activeItem['index'] > 0) {
+                                this.artworkURL = "/api/artwork/" + this.activeItem['playlistId'] + "/" + this.activeItem['index']
+                            }
+                        } else {
+                            this.displayPlaceholder()
+                        }
+                    }
+                }
+
+            })
+
+        }
+
+//]]></script>
+
+</head>
+
+<body>
+    <div id="app">
+        <div class="artwork" v-bind:style="{ 'background-image': 'url(' + artworkURL + ')' }">
+        </div>
+</body>
+
+</html>
