@@ -13,10 +13,24 @@
             background-position: center;
             background-repeat: no-repeat;
             background-size: cover;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .indicator {
+            background-image: url('icons/play.svg');
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.7;
+            height: 40%;
+            width: 40%;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/1.2.3/velocity.min.js"></script>
     <script type="text/javascript">//<![CDATA[
 
         window.onload = function () {
@@ -28,6 +42,10 @@
                     playbackState: null,
                     activeItem: null,
                     volume: null,
+                    showIndicator: false,
+                    fadeInDuration: 150,
+                    fadeOutDuration: 450,
+                    indicatorIconURL: 'icons/play.svg',
                     placeholder: [
                         'placeholders/kemurikusa.gif',
                         'placeholders/kemono.gif',
@@ -94,33 +112,71 @@
                         }
                     },
                     prev() {
+                        this.displayIndicator('prev');
                         axios.post('/api/player/previous', {})
                     },
                     next() {
+                        this.displayIndicator('next');
                         axios.post('/api/player/next', {})
                     },
                     toggle() {
+                        this.displayIndicator(this.playbackState == "playing" ? 'pause' : 'play');
                         axios.post('/api/player/pause/toggle', {})
+
                     },
                     volumeUp() {
                         let volume = this.volume['value']
                         let max = this.volume['max']
                         let offset = 5
                         volume = (max < volume + offset) ? max : volume + offset
-                        axios.post('/api/player', {'volume': volume})
+                        this.displayIndicator('volume_up');
+                        axios.post('/api/player', { 'volume': volume })
                     },
                     volumeDown() {
                         let volume = this.volume['value']
                         let min = this.volume['min']
                         let offset = -5
                         volume = (min > volume + offset) ? min : volume + offset
-                        axios.post('/api/player', {'volume': volume})
+                        this.displayIndicator('volume_down');
+                        axios.post('/api/player', { 'volume': volume })
                     },
                     volumeMuteToggle() {
-                        axios.post('/api/player', {'isMuted': !this.volume['isMuted']})
+                        this.displayIndicator(this.volume['isMuted'] ? 'unmute' : 'mute');
+                        axios.post('/api/player', { 'isMuted': !this.volume['isMuted'] })
+                    },
+                    displayIndicator(filename) {
+                        this.indicatorIconURL = 'icons/' + filename + '.svg'
+                        this.showIndicator = true;
+                    },
+                    beforeEnter: function (el) {
+                        el.style.opacity = 0
+                    },
+                    enter: function (el, done) {
+                        var vm = this
+                        Velocity(el,
+                            { opacity: 0.7 },
+                            {
+                                duration: this.fadeInDuration,
+                                complete: function () {
+                                    done()
+                                    vm.showIndicator = false
+                                }
+                            }
+                        )
+                    },
+                    leave: function (el, done) {
+                        var vm = this
+                        Velocity(el,
+                            { opacity: 0 },
+                            {
+                                duration: this.fadeOutDuration,
+                                complete: function () {
+                                    done()
+                                }
+                            }
+                        )
                     }
                 }
-
             })
 
         }
@@ -130,9 +186,15 @@
 </head>
 
 <body>
+
     <div id="app">
         <div class="artwork" v-bind:style="{ 'background-image': 'url(' + artworkURL + ')' }">
+            <transition v-bind:css="false" v-on:before-enter="beforeEnter" v-on:enter="enter" v-on:leave="leave">
+                <div class="indicator" v-if="showIndicator"
+                    v-bind:style="{ 'background-image': 'url(' + indicatorIconURL + ')' }"></div>
+            </transition>
         </div>
+    </div>
 </body>
 
 </html>
