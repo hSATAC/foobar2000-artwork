@@ -16,6 +16,7 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script type="text/javascript">//<![CDATA[
 
         window.onload = function () {
@@ -26,14 +27,42 @@
                     artworkURL: null,
                     playbackState: null,
                     activeItem: null,
+                    volume: null,
                     placeholder: [
-                        'kemurikusa.gif',
-                        'kemono.gif'
+                        'placeholders/kemurikusa.gif',
+                        'placeholders/kemono.gif',
+                        'placeholders/kemono2.gif',
+                        'placeholders/ai.gif',
+                        'placeholders/platelet.gif',
+                        'placeholders/weathering.gif'
                     ]
                 },
                 created() {
                     this.setupStream();
                     this.displayPlaceholder();
+                },
+                mounted() {
+                    var vm = this;
+                    window.addEventListener('keyup', function (event) {
+                        if (event.keyCode == 81) { // q
+                            vm.prev()
+                        }
+                        if (event.keyCode == 87) { // w
+                            vm.toggle()
+                        }
+                        if (event.keyCode == 69) { // e
+                            vm.next()
+                        }
+                        if (event.keyCode == 65) { // a
+                            vm.volumeDown()
+                        }
+                        if (event.keyCode == 83) { // s
+                            vm.volumeMuteToggle()
+                        }
+                        if (event.keyCode == 68) { // d
+                            vm.volumeUp()
+                        }
+                    })
                 },
                 methods: {
                     setupStream() {
@@ -42,8 +71,9 @@
                         es.addEventListener('message', event => {
                             let data = JSON.parse(event.data);
                             if (Object.keys(data).length === 0) { return; }
-                            this.playbackState = data["player"]["playbackState"]
+                            this.playbackState = data['player']['playbackState']
                             this.activeItem = data['player']['activeItem']
+                            this.volume = data['player']['volume']
                             this.displayArtwork()
                         }, false);
 
@@ -62,6 +92,32 @@
                         } else {
                             this.displayPlaceholder()
                         }
+                    },
+                    prev() {
+                        axios.post('/api/player/previous', {})
+                    },
+                    next() {
+                        axios.post('/api/player/next', {})
+                    },
+                    toggle() {
+                        axios.post('/api/player/pause/toggle', {})
+                    },
+                    volumeUp() {
+                        let volume = this.volume['value']
+                        let max = this.volume['max']
+                        let offset = 5
+                        volume = (max < volume + offset) ? max : volume + offset
+                        axios.post('/api/player', {'volume': volume})
+                    },
+                    volumeDown() {
+                        let volume = this.volume['value']
+                        let min = this.volume['min']
+                        let offset = -5
+                        volume = (min > volume + offset) ? min : volume + offset
+                        axios.post('/api/player', {'volume': volume})
+                    },
+                    volumeMuteToggle() {
+                        axios.post('/api/player', {'isMuted': !this.volume['isMuted']})
                     }
                 }
 
