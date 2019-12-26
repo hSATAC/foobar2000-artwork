@@ -20,7 +20,11 @@ When foobar2000 is not playing, foobar2k-artwork can display images of your sele
 
 1. `$ make build` to build a docker image.
 
-1. `$ make run` to run the docker images.
+1. `$ make run` to run the docker image.
+
+1. `$ make stop` to stop the running docker image.
+
+1. `# make enable` to enable the systemd unit file of the docker image.
 
 1. Open the [web interface](http://locahost:8080) at your 8080 port.
 
