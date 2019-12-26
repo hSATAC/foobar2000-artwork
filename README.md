@@ -6,6 +6,12 @@ It can display current artwork with basic playback and volume controls.
 
 When foobar2000 is not playing, foobar2k-artwork can display images of your selection.
 
+## Demo
+
+See it in action.
+
+[![](http://img.youtube.com/vi/zbN08hwAtu0/0.jpg)](http://www.youtube.com/watch?v=zbN08hwAtu0 "")
+
 ## Installation
 
 1. You need to have [foobar2000](https://www.foobar2000.org/) & [beefweb plugin](https://github.com/hyperblast/beefweb) installed and configured.
