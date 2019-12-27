@@ -1,0 +1,8 @@
+# /etc/xdg/lxsession/LXDE-pi/autostart
+@lxpanel --profile LXDE-pi
+@pcmanfm --desktop --profile LXDE-pi
+@xscreensaver -no-splash
+@xset -display ":0" dpms force on
+@xset s off -dpms
+@chromium-browser --kiosk --app=http://localhost:8080
+@unclutter -idle 0
