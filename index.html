@@ -31,6 +31,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/1.2.3/velocity.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reconnecting-eventsource@1.0.4/dist/ReconnectingEventSource.min.js"></script>
     <script type="text/javascript">//<![CDATA[
 
         window.onload = function () {
@@ -84,7 +85,7 @@
                 },
                 methods: {
                     setupStream() {
-                        let es = new EventSource('/api/query/updates?player=true&trcolumns=%25artist%25%20-%20%25title%25%2C%25artist%25%20-%20%25album%25%20-%20%25title%25&playlists=true&playlistItems=true&plref=p2&plcolumns=%25artist%25%2C%25album%25%2C%25track%25%2C%25title%25%2C%25length%25&plrange=0%3A100');
+                        let es = new ReconnectingEventSource('/api/query/updates?player=true&trcolumns=%25artist%25%20-%20%25title%25%2C%25artist%25%20-%20%25album%25%20-%20%25title%25&playlists=true&playlistItems=true&plref=p2&plcolumns=%25artist%25%2C%25album%25%2C%25track%25%2C%25title%25%2C%25length%25&plrange=0%3A100');
 
                         es.addEventListener('message', event => {
                             let data = JSON.parse(event.data);
@@ -96,7 +97,9 @@
                         }, false);
 
                         es.addEventListener('error', event => {
-                            displayPlaceholder();
+                            console.log("Unable to connect to API:");
+                            console.log(event);
+                            this.displayPlaceholder();
                         }, false);
                     },
                     displayPlaceholder() {
