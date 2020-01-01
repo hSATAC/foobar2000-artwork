@@ -107,7 +107,7 @@
                     },
                     displayArtwork() {
                         if (this.playbackState == "playing") {
-                            if (this.activeItem['index'] > 0) {
+                            if (this.activeItem['index'] >= 0) {
                                 this.artworkURL = "/api/artwork/" + this.activeItem['playlistId'] + "/" + this.activeItem['index']
                             }
                         } else {
