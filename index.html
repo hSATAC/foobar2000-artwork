@@ -18,20 +18,10 @@
             align-items: center;
             justify-content: center;
         }
-
-        .indicator {
-            background-image: url('icons/play.svg');
-            background-position: center;
-            background-repeat: no-repeat;
-            opacity: 0.7;
-            height: 40%;
-            width: 40%;
-        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/1.2.3/velocity.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/reconnecting-eventsource@1.0.4/dist/ReconnectingEventSource.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
     <script type="text/javascript">//<![CDATA[
 
         window.onload = function () {
@@ -41,12 +31,8 @@
                 data: {
                     artworkURL: null,
                     playbackState: null,
-                    activeItem: null,
-                    volume: null,
-                    showIndicator: false,
-                    fadeInDuration: 150,
-                    fadeOutDuration: 450,
-                    indicatorIconURL: 'icons/play.svg',
+                    foobar2kPlaying: false,
+                    ytmPlaying: false,
                     placeholder: [
                         'placeholders/kemurikusa.gif',
                         'placeholders/kemono.gif',
@@ -60,124 +46,47 @@
                     this.setupStream();
                     this.displayPlaceholder();
                 },
-                mounted() {
-                    var vm = this;
-                    window.addEventListener('keyup', function (event) {
-                        if (event.keyCode == 81) { // q
-                            vm.prev()
-                        }
-                        if (event.keyCode == 87) { // w
-                            vm.toggle()
-                        }
-                        if (event.keyCode == 69) { // e
-                            vm.next()
-                        }
-                        if (event.keyCode == 65) { // a
-                            vm.volumeDown()
-                        }
-                        if (event.keyCode == 83) { // s
-                            vm.volumeMuteToggle()
-                        }
-                        if (event.keyCode == 68) { // d
-                            vm.volumeUp()
-                        }
-                    })
-                },
                 methods: {
                     setupStream() {
+                        // Connect to foobar2k beefweb API
                         let es = new ReconnectingEventSource('/api/query/updates?player=true&trcolumns=%25artist%25%20-%20%25title%25%2C%25artist%25%20-%20%25album%25%20-%20%25title%25&playlists=true&playlistItems=true&plref=p2&plcolumns=%25artist%25%2C%25album%25%2C%25track%25%2C%25title%25%2C%25length%25&plrange=0%3A100');
-
                         es.addEventListener('message', event => {
                             let data = JSON.parse(event.data);
                             if (Object.keys(data).length === 0) { return; }
-                            this.playbackState = data['player']['playbackState']
-                            this.activeItem = data['player']['activeItem']
-                            this.volume = data['player']['volume']
-                            this.displayArtwork()
+                            this.foobar2kPlaying = (data['player']['playbackState'] == "playing")
+                            if (this.foobar2kPlaying) {
+                                if (data['player']['activeItem']['index'] >= 0) {
+                                    this.artworkURL = "/api/artwork/" + data['player']['activeItem']['playlistId'] + "/" + data['player']['activeItem']['index']
+                                }
+                            } else {
+                                this.displayPlaceholder()
+                            }
                         }, false);
-
                         es.addEventListener('error', event => {
-                            console.log("Unable to connect to API:");
+                            console.log("Unable to connect to beefweb API:");
                             console.log(event);
                             this.displayPlaceholder();
                         }, false);
+
+                        // Connect to ytmdesktop API
+                        const ytm = io("http://192.168.1.51:9863");
+                        ytm.on('tick', data => {
+                            this.ytmPlaying = (!data['player']['isPaused'] && data['player']['hasSong'])
+                            if (this.ytmPlaying) {
+                                this.artworkURL = data['track']['cover']
+                            } else {
+                                this.displayPlaceholder()
+                            }
+                        });
                     },
                     displayPlaceholder() {
-                        this.artworkURL = this.placeholder[Math.floor(Math.random() * this.placeholder.length)]
-                    },
-                    displayArtwork() {
-                        if (this.playbackState == "playing") {
-                            if (this.activeItem['index'] >= 0) {
-                                this.artworkURL = "/api/artwork/" + this.activeItem['playlistId'] + "/" + this.activeItem['index']
-                            }
-                        } else {
-                            this.displayPlaceholder()
+                        if (this.placeholder.includes(this.artworkURL)) {
+                            return
                         }
-                    },
-                    prev() {
-                        this.displayIndicator('prev');
-                        axios.post('/api/player/previous', {})
-                    },
-                    next() {
-                        this.displayIndicator('next');
-                        axios.post('/api/player/next', {})
-                    },
-                    toggle() {
-                        this.displayIndicator(this.playbackState == "playing" ? 'pause' : 'play');
-                        axios.post('/api/player/pause/toggle', {})
-
-                    },
-                    volumeUp() {
-                        let volume = this.volume['value']
-                        let max = this.volume['max']
-                        let offset = 5
-                        volume = (max < volume + offset) ? max : volume + offset
-                        this.displayIndicator('volume_up');
-                        axios.post('/api/player', { 'volume': volume })
-                    },
-                    volumeDown() {
-                        let volume = this.volume['value']
-                        let min = this.volume['min']
-                        let offset = -5
-                        volume = (min > volume + offset) ? min : volume + offset
-                        this.displayIndicator('volume_down');
-                        axios.post('/api/player', { 'volume': volume })
-                    },
-                    volumeMuteToggle() {
-                        this.displayIndicator(this.volume['isMuted'] ? 'unmute' : 'mute');
-                        axios.post('/api/player', { 'isMuted': !this.volume['isMuted'] })
-                    },
-                    displayIndicator(filename) {
-                        this.indicatorIconURL = 'icons/' + filename + '.svg'
-                        this.showIndicator = true;
-                    },
-                    beforeEnter: function (el) {
-                        el.style.opacity = 0
-                    },
-                    enter: function (el, done) {
-                        var vm = this
-                        Velocity(el,
-                            { opacity: 0.7 },
-                            {
-                                duration: this.fadeInDuration,
-                                complete: function () {
-                                    done()
-                                    vm.showIndicator = false
-                                }
-                            }
-                        )
-                    },
-                    leave: function (el, done) {
-                        var vm = this
-                        Velocity(el,
-                            { opacity: 0 },
-                            {
-                                duration: this.fadeOutDuration,
-                                complete: function () {
-                                    done()
-                                }
-                            }
-                        )
+                        if (this.foobar2kPlaying || this.ytmPlaying) {
+                            return
+                        }
+                        this.artworkURL = this.placeholder[Math.floor(Math.random() * this.placeholder.length)]
                     }
                 }
             })
@@ -192,10 +101,6 @@
 
     <div id="app">
         <div class="artwork" v-bind:style="{ 'background-image': 'url(' + artworkURL + ')' }">
-            <transition v-bind:css="false" v-on:before-enter="beforeEnter" v-on:enter="enter" v-on:leave="leave">
-                <div class="indicator" v-if="showIndicator"
-                    v-bind:style="{ 'background-image': 'url(' + indicatorIconURL + ')' }"></div>
-            </transition>
         </div>
     </div>
 </body>

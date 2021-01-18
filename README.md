@@ -6,9 +6,11 @@ It can display current artwork with basic playback and volume controls.
 
 When foobar2000 is not playing, foobar2k-artwork can display images of your selection.
 
+Now YouTube Music is also supported. This project may be renamed soon.
+
 ## Demo
 
-See it in action.
+See it in action. `TO BE UPDATED - button action is removed.`
 
 [![](http://img.youtube.com/vi/zbN08hwAtu0/0.jpg)](http://www.youtube.com/watch?v=zbN08hwAtu0 "")
 
@@ -36,12 +38,7 @@ See it in action.
 
 ## Usage
 
-- Press `q` to play previous track.
-- Press `w` to play/pause the player.
-- Press `e` to play next track.
-- Press `a` to turn the volume down.
-- Press `s` to mute/unmute.
-- Press `d` to turn the volume up.
+Setup your beefweb or ytmDesktop API server and modify API endpoints in `index.html` and then build & run the docker image.
 
 ## Miscellaneous
 
@@ -49,7 +46,9 @@ See it in action.
 
 1. [beefweb plugin](https://github.com/hyperblast/beefweb) provides authentication to protect it's web UI and APIs. It's not supported by foobar2k-artwork yet.
 
+1. YouTube Music is support via [ytmDesktop](https://ytmdesktop.app/), enable the remote control server without password.
+
 ## License
 
-Copyright © 2019 [Ash Wu](https://github.com/hSATAC).<br />
+Copyright © 2021 [Ash Wu](https://github.com/hSATAC).<br />
 This project is [MIT](https://choosealicense.com/licenses/mit/) licensed.
