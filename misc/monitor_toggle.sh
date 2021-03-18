@@ -1,11 +1,9 @@
 #!/bin/bash
 export DISPLAY=:0.0
-STATUS=`xset -q | grep "DPMS is Disabled"`
-
-if [[ $? == 0 ]]; then
-  xset dpms force off
+STATUS=`cat /sys/class/backlight/rpi_backlight/brightness`
+if [ "$STATUS" -eq "1" ]; then
+  sudo bash -c "echo 0 > /sys/class/backlight/rpi_backlight/brightness"
 else
-  xset dpms force on
-  xset s off -dpms
+  sudo bash -c "echo 1 > /sys/class/backlight/rpi_backlight/brightness"
 fi
 exit 0
