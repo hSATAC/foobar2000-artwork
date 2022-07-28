@@ -131,16 +131,30 @@
                     },
                     prev() {
                         this.displayIndicator('prev');
-                        axios.post('/api/player/previous', {})
+                        if (this.foobar2kPlaying) {
+                            axios.post('/api/player/previous', {})
+                        }
+                        if (this.ytmPlaying) {
+                            axios.post('/query', { command: 'track-previous'})
+                        }
                     },
                     next() {
                         this.displayIndicator('next');
-                        axios.post('/api/player/next', {})
+                        if (this.foobar2kPlaying) {
+                            axios.post('/api/player/next', {})
+                        }
+                        if (this.ytmPlaying) {
+                            axios.post('/query', { command: 'track-next'})
+                        }
                     },
                     toggle() {
                         this.displayIndicator(this.playbackState == "playing" ? 'pause' : 'play');
-                        axios.post('/api/player/pause/toggle', {})
-
+                        if (this.foobar2kPlaying) {
+                            axios.post('/api/player/pause/toggle', {})
+                        }
+                        if (this.ytmPlaying) {
+                            axios.post('/query', { command: 'track-play-pause'})
+                        }
                     },
                     displayIndicator(filename) {
                         this.indicatorIconURL = 'icons/' + filename + '.svg'
