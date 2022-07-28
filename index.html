@@ -7,7 +7,6 @@
         html {
             height: 100%;
         }
-
         .artwork {
             height: 100%;
             background-position: center;
@@ -18,8 +17,34 @@
             align-items: center;
             justify-content: center;
         }
+        .left {
+            width: 33%;
+            height: 100%;
+            float: left;
+        }
+        .mid {
+            width: 34%;
+            height: 100%;
+            float: left;
+        }
+        .right {
+            width: 33%;
+            height: 100%;
+            position: relative;
+            float: right;
+        }
+        .indicator {
+            background-image: url('icons/play.svg');
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.7;
+            height: 100%;
+            width: 100%;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/1.2.3/velocity.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/reconnecting-eventsource@1.0.4/dist/ReconnectingEventSource.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
     <script type="text/javascript">//<![CDATA[
@@ -33,6 +58,10 @@
                     playbackState: null,
                     foobar2kPlaying: false,
                     ytmPlaying: false,
+                    showIndicator: false,
+                    fadeInDuration: 150,
+                    fadeOutDuration: 450,
+                    indicatorIconURL: 'icons/play.svg',
                     placeholder: [
                         'placeholders/kemurikusa.gif',
                         'placeholders/kemono.gif',
@@ -45,6 +74,18 @@
                 created() {
                     this.setupStream();
                     this.displayPlaceholder();
+                },
+                mounted() {
+                    var vm = this;
+                    this.$el.querySelector("div.mid").addEventListener('click', function(event) {
+                        vm.toggle();
+                    })
+                    this.$el.querySelector("div.left").addEventListener('click', function(event) {
+                        vm.prev();
+                    })
+                    this.$el.querySelector("div.right").addEventListener('click', function(event) {
+                        vm.next();
+                    })
                 },
                 methods: {
                     setupStream() {
@@ -87,6 +128,51 @@
                             return
                         }
                         this.artworkURL = this.placeholder[Math.floor(Math.random() * this.placeholder.length)]
+                    },
+                    prev() {
+                        this.displayIndicator('prev');
+                        axios.post('/api/player/previous', {})
+                    },
+                    next() {
+                        this.displayIndicator('next');
+                        axios.post('/api/player/next', {})
+                    },
+                    toggle() {
+                        this.displayIndicator(this.playbackState == "playing" ? 'pause' : 'play');
+                        axios.post('/api/player/pause/toggle', {})
+
+                    },
+                    displayIndicator(filename) {
+                        this.indicatorIconURL = 'icons/' + filename + '.svg'
+                        this.showIndicator = true;
+                    },
+                    beforeEnter: function (el) {
+                        el.style.opacity = 0
+                    },
+                    enter: function (el, done) {
+                        var vm = this
+                        Velocity(el,
+                            { opacity: 0.7 },
+                            {
+                                duration: this.fadeInDuration,
+                                complete: function () {
+                                    done()
+                                    vm.showIndicator = false
+                                }
+                            }
+                        )
+                    },
+                    leave: function (el, done) {
+                        var vm = this
+                        Velocity(el,
+                            { opacity: 0 },
+                            {
+                                duration: this.fadeOutDuration,
+                                complete: function () {
+                                    done()
+                                }
+                            }
+                        )
                     }
                 }
             })
@@ -100,7 +186,15 @@
 <body>
 
     <div id="app">
-        <div class="artwork" v-bind:style="{ 'background-image': 'url(' + artworkURL + ')' }">
+        <div class="artwork" v-bind:style="{ 'background-image': 'url(' + artworkURL + ')' }">            
+            <div class="left"></div>
+            <div class="mid">
+                <transition v-bind:css="false" v-on:before-enter="beforeEnter" v-on:enter="enter" v-on:leave="leave">
+                    <div class="indicator" v-if="showIndicator"
+                        v-bind:style="{ 'background-image': 'url(' + indicatorIconURL + ')' }"></div>
+                </transition>
+            </div>
+            <div class="right"></div>
         </div>
     </div>
 </body>
