@@ -90,7 +90,7 @@
                 methods: {
                     setupStream() {
                         // Connect to foobar2k beefweb API
-                        let es = new ReconnectingEventSource('/api/query/updates?player=true&trcolumns=%25artist%25%20-%20%25title%25%2C%25artist%25%20-%20%25album%25%20-%20%25title%25&playlists=true&playlistItems=true&plref=p2&plcolumns=%25artist%25%2C%25album%25%2C%25track%25%2C%25title%25%2C%25length%25&plrange=0%3A100');
+                        let es = new ReconnectingEventSource('http://192.168.1.51:8880/api/query/updates?player=true&trcolumns=%25artist%25%20-%20%25title%25%2C%25artist%25%20-%20%25album%25%20-%20%25title%25&playlists=true&playlistItems=true&plref=p2&plcolumns=%25artist%25%2C%25album%25%2C%25track%25%2C%25title%25%2C%25length%25&plrange=0%3A100');
                         es.addEventListener('message', event => {
                             let data = JSON.parse(event.data);
                             if (Object.keys(data).length === 0) { return; }
@@ -132,7 +132,7 @@
                     prev() {
                         this.displayIndicator('prev');
                         if (this.foobar2kPlaying) {
-                            axios.post('/api/player/previous', {})
+                            axios.post('http://192.168.1.51:8880/api/player/previous', {})
                         }
                         if (this.ytmPlaying) {
                             axios.post('/query', { command: 'track-previous'})
@@ -141,7 +141,7 @@
                     next() {
                         this.displayIndicator('next');
                         if (this.foobar2kPlaying) {
-                            axios.post('/api/player/next', {})
+                            axios.post('http://192.168.1.51:8880/api/player/next', {})
                         }
                         if (this.ytmPlaying) {
                             axios.post('/query', { command: 'track-next'})
@@ -150,7 +150,7 @@
                     toggle() {
                         this.displayIndicator(this.playbackState == "playing" ? 'pause' : 'play');
                         if (this.foobar2kPlaying) {
-                            axios.post('/api/player/pause/toggle', {})
+                            axios.post('http://192.168.1.51:8880/api/player/pause/toggle', {})
                         }
                         if (this.ytmPlaying) {
                             axios.post('/query', { command: 'track-play-pause'})
