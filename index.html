@@ -97,7 +97,7 @@
                             this.foobar2kPlaying = (data['player']['playbackState'] == "playing")
                             if (this.foobar2kPlaying) {
                                 if (data['player']['activeItem']['index'] >= 0) {
-                                    this.artworkURL = "/api/artwork/" + data['player']['activeItem']['playlistId'] + "/" + data['player']['activeItem']['index']
+                                    this.artworkURL = "http://192.168.1.51:8880/api/artwork/" + data['player']['activeItem']['playlistId'] + "/" + data['player']['activeItem']['index']
                                 }
                             } else {
                                 this.displayPlaceholder()
