@@ -132,7 +132,7 @@
                     prev() {
                         this.displayIndicator('prev');
                         if (this.foobar2kPlaying) {
-                            axios.post('http://192.168.1.51:8880/api/player/previous', {})
+                            axios.post('/api/player/previous', {})
                         }
                         if (this.ytmPlaying) {
                             axios.post('/query', { command: 'track-previous'})
@@ -141,7 +141,7 @@
                     next() {
                         this.displayIndicator('next');
                         if (this.foobar2kPlaying) {
-                            axios.post('http://192.168.1.51:8880/api/player/next', {})
+                            axios.post('/api/player/next', {})
                         }
                         if (this.ytmPlaying) {
                             axios.post('/query', { command: 'track-next'})
@@ -150,7 +150,7 @@
                     toggle() {
                         this.displayIndicator(this.playbackState == "playing" ? 'pause' : 'play');
                         if (this.foobar2kPlaying) {
-                            axios.post('http://192.168.1.51:8880/api/player/pause/toggle', {})
+                            axios.post('/api/player/pause/toggle', {})
                         }
                         if (this.ytmPlaying) {
                             axios.post('/query', { command: 'track-play-pause'})
